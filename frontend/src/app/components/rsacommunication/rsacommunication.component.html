@@ -1,0 +1,13 @@
+<div class = "card-body">
+    <form (submit)="Encrypt(mensaje, publicKey)">
+        <div class="form-group">
+            <textarea rows="2" class="form-control" placeholder="Mensaje" required #mensaje></textarea>
+        </div>
+        <div class="form-group">
+            <textarea rows="2" class="form-control" placeholder="PublicKey" required #publicKey></textarea>
+        </div>
+        <button class="btn btn-primary btn-block">
+            Cifrar
+        </button>
+    </form>
+</div>
