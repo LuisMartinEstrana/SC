@@ -1,104 +1,73 @@
 import { Request, Response } from 'express'
+import * as rsa from 'my-rsa'
+import * as bigintConversion from 'bigint-conversion'
 
-const crypto = require('crypto')
+//Genera un par de claves publicas y privadas
+const keypair = rsa.generateKeys(1024)
 
-const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa',{
-    modulusLength: 2048
-})
-const pub123 = publicKey.export({
-    type: "pkcs1",
-    format: "pem"
-})
-
-export const publi = async (req: Request, res: Response) => {
-    const pub = publicKey.export({
-        type: "pkcs1",
-        format: "pem"
+//FUNCIONA
+export const keys = async (req: Request, res: Response) => {
+    const publicE = (await keypair).publicKey.e
+    const publicN = (await keypair).publicKey.n
+    const privateD = (await keypair).privateKey.d
+    const privateN = (await keypair).privateKey.n
+    const pubE = bigintConversion.bigintToHex(publicE)
+    const pubN = bigintConversion.bigintToHex(publicN)
+    /*const pub: any[] = []
+    pub[0] = pubE
+    pub[1] = pubN*/
+    const pub = pubE +" "+ pubN
+    return res.json({
+        message: pub
     })
-    console.log(publicKey.export({
-        type: "pkcs1",
-        format: "pem"
-    }))
-    console.log(privateKey.export({
-        type: "pkcs1",
-        format: "pem"
-    }))
-    return res.json({message: pub})
 }
 
-export const decipherMensaje = async (req: Request, res: Response) => {
-    console.log(publicKey.export({
-        type: "pkcs1",
-        format: "pem"
-    }))
-    console.log(privateKey.export({
-        type: "pkcs1",
-        format: "pem"
-    }))
-    const {cifrado, firmado} = await req.body
-    //Descifrar mensaje
-    const decipher = crypto.privateDecrypt({
-        key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        oaepHash: "sha256"
-    },
-    cifrado)
-    console.log(decipher.toString())
-
-    //Verificar
-    const verificar = crypto.verify(
-        "sha256",
-        Buffer.from(firmado),
-        {
-            key: privateKey,
-            padding: crypto.constants.RSA_PKCS1_PSS_PADDING
-        },
-        firmado
-    )
-
-    if (verificar == true) {
-        console.log(decipher.toString())
-        return res.json({message: "Descifrado"})
-    }else {
-        return res.json({message: "No descifrado"})
-    }
-    
-}
-
-//El servidor envia un mensaje firmado al cliente para que verifique la firma
-export const firmaServidor = async (req: Request, res: Response) => {
-    const mensaje = "Firma del servidor para el cliente"
-    const signature = crypto.sign("sha256", Buffer.from(mensaje), {
-        key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_PSS_PADDING
+//
+export const decrypt = async (req: Request, res: Response) => {
+    const mensaje = await bigintConversion.hexToBigint(req.body)
+    //const keypair = await rsa.generateKeys(1024)
+    const decypher = (await keypair).privateKey.decrypt(mensaje)
+    console.log(decypher)
+    return res.json({
+        message: bigintConversion.bigintToHex(decypher) 
     })
-    console.log(signature)
-    return res.json({message: signature.toString("hex")})
 }
 
+//FUNCIONA
+export const sign = async (req: Request, res: Response) => {
+    const mensaje = bigintConversion.textToBigint(req.body)
+    console.log(mensaje)
+    //const keypair = await rsa.generateKeys(1024)
+    const signs = (await keypair).privateKey.sign(mensaje)
+    console.log(signs)
+    return res.json({
+        message: bigintConversion.bigintToHex(signs) 
+    })
+}
 
-// 1. Cuando establece conexión con un cliente, envia la clave publica y el cliente encripta y firma el mensaje
-export const getPublicKey = async (req: Request, res: Response) => {
-    
-    //Prueva:
-    //Cifra el mensaje
-    const mensaje = "Quiero encriptar esto"
-    const cifrado = crypto.publicEncrypt({
-        key: publicKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        oaepHash: "sha256"
-    },
-    Buffer.from(mensaje))
-    console.log(cifrado.toString("base64"))
+//CLIENTE
+//FUNCIONA
+export const encrypt = async (req: Request, res: Response) => {
+    const mensaje = bigintConversion.textToBigint(req.body)
+    //console.log(mensaje)
+    //const keypair = await rsa.generateKeys(1024)
+    //console.log((await keypair).publicKey.e)
+    //console.log((await keypair).publicKey.n)
+    const cifrado = (await keypair).publicKey.encrypt(mensaje)
+    const encryp = bigintConversion.bigintToBase64(cifrado)
+    console.log(encryp)
+    return res.json({
+        message: "encryp"
+    })
+}
 
-    //El servidor descifra el mensaje
-    const decipher = crypto.privateDecrypt({
-        key: privateKey,
-        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
-        oaepHash: "sha256"
-    },
-    cifrado)
-    console.log(decipher.toString())
-
-    return res.json ({message: "HOLA"})
+//
+ export const verify = async (req: Request, res: Response) => {
+     const sign = bigintConversion.textToBigint(req.body)
+     console.log(sign)
+     const keypair = await rsa.generateKeys(1024)
+     const verif = keypair.publicKey.verify(sign)
+     return res.json({
+         message: bigintConversion.bigintToHex(verif)
+     })
 }

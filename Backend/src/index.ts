@@ -1,4 +1,5 @@
 import app from './app'
+import * as rsa from 'my-rsa'
 
 
 async function main() {

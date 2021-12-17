@@ -1,28 +1,32 @@
 import { Router } from "express";
 
-import { getPublicKey, publi, decipherMensaje, firmaServidor } from '../controllers/rsa.controller'
+import { keys ,decrypt ,sign, encrypt, verify } from '../controllers/rsa.controller'
 
 
 const router = Router()
 
 //localhost:4000/
 
+//Modulos que estan en librerias
+
 //-----------------------//
-//--------.-RSA----------//
+//----------RSA----------//
 //-----------------------//
 
 //Estabecer conexión
 //Envia la clave publica
-router.get('/rsa', publi)
+router.get('/rsa',keys) //Pasar en hexa bigint-conversion
 
 //Recibir un mensaje y descifrar y lo verificar
-router.post('/rsa', decipherMensaje)
+router.post('/rsa/descifrar', decrypt)
 
 //Firma del servidor
-router.get('/rsa/sign', firmaServidor)
+router.post('/rsa/sign', sign)
 
-//Prueva
-router.get('/', getPublicKey)
+//Prueva de cifrado
+router.post('/rsa/cifrado', encrypt)
+
+router.post('/rsa/verify', verify)
 
 
 export default router

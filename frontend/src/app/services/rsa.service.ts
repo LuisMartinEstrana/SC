@@ -10,16 +10,28 @@ export class RsaService {
 
   constructor(private http: HttpClient) { }
 
-  mensajeCifrado(mensaje: string, publicKey: string) {
-    const cifrado = mensaje
-    const signature = publicKey
-    const fd = new FormData()
-    fd.append('cifrado', cifrado)
-    fd.append('firmado', signature)
-    return this.http.post(this.URI + '/rsa', fd)
+  mensajeCifrado(mensaje: string) {
+    console.log("Service")
+    console.log(mensaje)
+    const path = `${this.URI}/rsa/cifrado`
+    return this.http.post(path, mensaje)
   }
 
+  sign(mensaje: string) {
+    console.log("Firma")
+    return this.http.post(this.URI + '/rsa/sign', mensaje)
+  }
+
+  firmaciega(mensaje: string) {
+    console.log("Firma ciega")
+    return this.http.post(this.URI + '/rsa/sign', mensaje)
+  }
+
+  verify(mensaje: string) {
+    return this.http.post(this.URI + '/rsa/verify', mensaje)
+  }
+  
   getPublicKey() {
-    return this.http.get(this.URI + '/rsa')
+    return this.http.get(this.URI + "/rsa")
   }
 }
